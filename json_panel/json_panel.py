@@ -4,34 +4,47 @@ import discord
 from discord.ext import commands
 
 def _as_embed(d: dict) -> discord.Embed:
-    embed = discord.Embed(
-        title=d.get("title"),
-        description=d.get("description"),
-        url=d.get("url"),
-        color=discord.Color(d.get("color")) if isinstance(d.get("color"), int) else discord.Embed.Empty,
-    )
+    kwargs = {}
+
+    if isinstance(d.get("title"), str):
+        kwargs["title"] = d["title"]
+    if isinstance(d.get("description"), str):
+        kwargs["description"] = d["description"]
+    if isinstance(d.get("url"), str):
+        kwargs["url"] = d["url"]
+    if isinstance(d.get("color"), int):
+        kwargs["color"] = discord.Color(d["color"])
+
+    embed = discord.Embed(**kwargs)
 
     author = d.get("author")
     if isinstance(author, dict):
-        embed.set_author(
-            name=author.get("name") or discord.Embed.Empty,
-            url=author.get("url") or discord.Embed.Empty,
-            icon_url=author.get("icon_url") or discord.Embed.Empty,
-        )
+        a_name = author.get("name")
+        a_url = author.get("url")
+        a_icon = author.get("icon_url")
+        if a_name or a_url or a_icon:
+            embed.set_author(
+                name=a_name or "",
+                url=a_url,
+                icon_url=a_icon,
+            )
 
     footer = d.get("footer")
     if isinstance(footer, dict):
-        embed.set_footer(
-            text=footer.get("text") or discord.Embed.Empty,
-            icon_url=footer.get("icon_url") or discord.Embed.Empty,
-        )
+        f_text = footer.get("text")
+        f_icon = footer.get("icon_url")
+        if f_text or f_icon:
+            embed.set_footer(
+                text=f_text or "",
+                icon_url=f_icon,
+            )
 
     thumb = d.get("thumbnail")
-    if isinstance(thumb, dict) and thumb.get("url"):
+    if isinstance(thumb, dict) and isinstance(thumb.get("url"), str):
         embed.set_thumbnail(url=thumb["url"])
 
     image = d.get("image")
-    if isinstance(image, dict) and image.get("url"):
+    if isinstance(image, dict) and isinstance(image.get("url"), str):
         embed.set_image(url=image["url"])
 
     for f in d.get("fields", []) or []:
